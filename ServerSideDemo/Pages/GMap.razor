@@ -1,24 +1,11 @@
-﻿@page "/mapMarker"
-@using GoogleMapsComponents
+﻿@using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
-@using System.Diagnostics
 @using GoogleMapsComponents.Maps.Coordinates
 
-<h1>Google Map Markers</h1>
+@inherits GoogleMap;
 
-<GoogleMap @ref="@map1" Id="map1" Options="@mapOptions"></GoogleMap>
-<button @onclick="@AddMarker">Add marker</button>
-<button @onclick="@AddMarkerStyled">Add styled font marker</button>
-<button @onclick="@RemoveMarker">Remove marker</button>
-<button @onclick="@Recenter">Re-center marker</button>
-<button @onclick="@FitBounds">Fit to markers</button>
-<button @onclick="@InvokeClustering">Invoke map cluster</button>
-<button @onclick="@ClearClustering">ClearClustering</button>
-<button @onclick="@GetAnimation">GetAnimation </button>
-<button @onclick="@SetAnimation">SetAnimation </button>
+<div @ref="@Element" id="@Id" class="@CssClass" style="@StyleStr"></div>
 
-
-<MapEventList @ref="@eventList" Events="@_events"></MapEventList>
 <style>
     /* Optional: Makes the sample page fill the window. */
     html,
@@ -82,3 +69,17 @@
         background: blueviolet
     }
 </style>
+
+@code {
+#nullable enable
+
+    private string StyleStr => $"height: {Height}; width:{Width}";
+
+    private ElementReference Element { get; set; }
+
+    protected override bool ShouldRender()
+    {
+        return false;
+    }
+
+}

@@ -47,6 +47,19 @@ namespace GoogleMapsComponents.Maps
             await _jsObjectRef.JSRuntime.MyInvokeAsync<object>("googleMapsObjectManager.addControls", this.Guid.ToString(), position, reference);
         }
 
+        public async Task AddImageLayer(ImageMapType reference)
+        {
+            await _jsObjectRef.JSRuntime.MyInvokeAsync<object>("googleMapsObjectManager.addImageLayer", this.Guid.ToString(), reference.Guid.ToString());
+        }
+        public async Task RemoveImageLayer(ImageMapType reference)
+        {
+            await _jsObjectRef.JSRuntime.MyInvokeAsync<object>("googleMapsObjectManager.removeImageLayer", this.Guid.ToString(), reference.Guid.ToString());
+        }
+        public async Task RemoveAllImageLayers()
+        {
+            await _jsObjectRef.JSRuntime.MyInvokeAsync<object>("googleMapsObjectManager.removeAllImageLayers", this.Guid.ToString());
+        }
+
         public void Dispose()
         {
             JsObjectRefInstances.Remove(_jsObjectRef.Guid.ToString());
@@ -86,6 +99,22 @@ namespace GoogleMapsComponents.Maps
         public Task PanTo(LatLngLiteral latLng)
         {
             return _jsObjectRef.InvokeAsync("panTo", latLng);
+        }
+
+        /// <summary>
+        /// Returns the current Projection.
+        /// If the map is not yet initialized then the result is undefined.
+        /// Listen to the projection_changed event and check its value to ensure it is not undefined.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Projection> GetProjection()
+        {
+            var id = Guid.NewGuid();
+            await _jsObjectRef.InvokeAsync("getProjection", id.ToString());
+            //projection is returned and created on js
+            var projection = new Projection(_jsObjectRef.JSRuntime, id);
+
+            return projection;
         }
 
         /// <summary>
@@ -184,14 +213,19 @@ namespace GoogleMapsComponents.Maps
             return _jsObjectRef.InvokeAsync("setTilt", tilt);
         }
 
-        public Task<int> GetZoom()
+        public Task<double> GetZoom()
         {
-            return _jsObjectRef.InvokeAsync<int>("getZoom");
+            return _jsObjectRef.InvokeAsync<double>("getZoom");
         }
 
-        public Task SetZoom(int zoom)
+        public Task SetZoom(double zoom)
         {
             return _jsObjectRef.InvokeAsync("setZoom", zoom);
+        }
+
+        public Task SetOptions(MapOptions mapOptions)
+        {
+            return _jsObjectRef.InvokeAsync("setOptions", mapOptions);
         }
 
         public async Task<MapEventListener> AddListener(string eventName, Action handler)

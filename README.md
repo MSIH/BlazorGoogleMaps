@@ -5,17 +5,21 @@ Blazor interop for GoogleMap library
 
 ## Usage
 1. Add google map script HEAD tag to wwwroot/index.html in Client side or _Host.cshtml in Server Side.
-How to get key fallow https://developers.google.com/maps/documentation/javascript/get-api-key
+How to get key follow https://developers.google.com/maps/documentation/javascript/get-api-key
 ```
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_GOES_HERE&v=3"></script>
 ```
 Add path to project javascript functions file in wwwroot/index.html in Client side or _Host.cshtml in Server Side.
 ```
-<script src="_content/BlazorGoogleMaps/objectManager.js"></script>
+<script src="_content/BlazorGoogleMaps/js/objectManager.js"></script>
 ```
-Add the following script if you want to use marker clustering.
+If you want to use marker clustering in a Server Side project then add the following script to _Host.cshtml.
 ```
-<script src="https://unpkg.com/@@googlemaps/markerclustererplus/dist/index.min.js"></script>
+<script src="https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js"></script>
+```
+If you want to use marker clustering in a Client Side project then add the following script to wwwroot/index.html.
+```
+<script src="https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js"></script>
 ```
 
 2. Use component in client and server side same
@@ -124,20 +128,6 @@ In Startup.ConfigureServices
 services.AddServerSideBlazor().AddHubOptions(config => config.MaximumReceiveMessageSize = 1048576);
 ```
 
-## Current status
-* Map
-* Marker
-* Symbols
-* InfoWindow
-* Polygon, LineString, Rectangle, Circle
-* Routes
-* Coordinates
-  * Bounds
- * Styles
+## Samples
+ Please check server side samples https://github.com/rungwiroon/BlazorGoogleMaps/tree/master/ServerSideDemo which are most to date
 
-## Work In Progress
-
-## Todo
-* Data 
-* StreetView
-* Places

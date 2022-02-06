@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ClientSideDemo.Shared;
 using GoogleMapsComponents;
 using GoogleMapsComponents.Maps;
 using GoogleMapsComponents.Maps.Coordinates;
+using GoogleMapsComponents.Maps.Extension;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using ServerSideDemo.Shared;
 
-namespace ServerSideDemo.Pages
+namespace ClientSideDemo.Pages
 {
-    public partial class MapMarker
+    public partial class MapMarkerListPage
     {
         private GoogleMap map1;
 
@@ -24,8 +25,7 @@ namespace ServerSideDemo.Pages
         private MapEventList eventList;
 
         private LatLngBounds bounds;
-        private MarkerClustering _markerClustering;
-        public int ZIndex { get; set; } = 0;
+        private MarkerList _markerList;
 
         [Inject]
         public IJSRuntime JsObjectRef { get; set; }
@@ -40,8 +40,7 @@ namespace ServerSideDemo.Pages
                     Lat = 13.505892,
                     Lng = 100.8162
                 },
-                MapTypeId = MapTypeId.Roadmap,
-                MapId = "3a3b33f0edd6ed2a"
+                MapTypeId = MapTypeId.Roadmap
             };
         }
 
@@ -53,10 +52,6 @@ namespace ServerSideDemo.Pages
             }
         }
 
-        private async Task ClearClustering()
-        {
-            await _markerClustering.ClearMarkers();
-        }
         private async Task InvokeClustering()
         {
             var coordinates = new List<LatLngLiteral>()
@@ -88,8 +83,8 @@ namespace ServerSideDemo.Pages
 
             var markers = await GetMarkers(coordinates, map1.InteropObject);
 
-            _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, markers);
-            await _markerClustering.FitMapToMarkers(1);
+            await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, markers);
+
             //initMap
             //await JsObjectRef.InvokeAsync<object>("initMap", map1.InteropObject.Guid.ToString(), markers);
         }
@@ -119,79 +114,106 @@ namespace ServerSideDemo.Pages
             return result;
         }
 
-        private async Task AddMarkerStyled()
+        private async Task AddMarker2()
         {
-            var mapCenter = await map1.InteropObject.GetCenter();
-            ZIndex++;
-
-            var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+            var coordinates = new List<LatLngLiteral>()
             {
-                Position = mapCenter,
-                Map = map1.InteropObject,
-                ZIndex = ZIndex,
-                //Note that font properties are overriden in class
-                //Please be cautious about versioning issues and some issues when using other tools
-                //https://developers.google.com/maps/documentation/javascript/reference/marker#MarkerLabel.className
-                Label = new MarkerLabel
+                new LatLngLiteral(145.128708, -37.759859),
+                new LatLngLiteral(145.133858, -37.765015),
+                new LatLngLiteral(145.143299, -37.770104),
+                new LatLngLiteral(145.145187, -37.7737),
+                new LatLngLiteral(145.137978, -37.774785),
+                new LatLngLiteral(144.968119, -37.819616),
+                new LatLngLiteral(144.695692, -38.330766),
+                new LatLngLiteral(175.053218, -39.927193),
+                new LatLngLiteral(174.865694, -41.330162),
+                new LatLngLiteral(147.439506, -42.734358),
+                new LatLngLiteral(147.501315, -42.734358),
+                new LatLngLiteral(147.438, -42.735258),
+                new LatLngLiteral(170.463352, -43.999792),
+            };
+            await AddMarkersGroup(coordinates);
+        }
+
+        private async Task AddMarker1()
+        {
+            var coordinates = new List<LatLngLiteral>()
+            {
+                new LatLngLiteral(147.154312, -31.56391),
+                new LatLngLiteral(150.363181, -33.718234),
+                new LatLngLiteral(150.371124, -33.727111),
+                new LatLngLiteral(151.209834, -33.848588),
+                new LatLngLiteral(151.216968, -33.851702),
+                new LatLngLiteral(150.863657, -34.671264),
+                new LatLngLiteral(148.662905, -35.304724),
+                new LatLngLiteral(175.699196, -36.817685),
+                new LatLngLiteral(175.790222, -36.828611),
+                new LatLngLiteral(145.116667, -37.75),
+            };
+
+
+            for (int index = 0; index < 200; index++)
+            {
+                var dif = (index * 0.001);
+                coordinates.Add(new LatLngLiteral(145.116667 + dif, -37.75 + dif));
+            }
+
+            await AddMarkersGroup(coordinates);
+        }
+
+
+
+        private async Task AddMarkersGroup(IEnumerable<LatLngLiteral> coordinates)
+        {
+            if (_markerList == null)
+            {
+                _markerList = await MarkerList.CreateAsync(
+                    map1.JsRuntime,
+                    coordinates.ToDictionary(s => Guid.NewGuid().ToString(), y => new MarkerOptions()
+                    {
+                        Position = new LatLngLiteral(y.Lng, y.Lat),
+                        Map = map1.InteropObject,
+                        //Icon = new Icon() { Url = s.MarkerIconPath, ScaledSize = iconSize, Anchor = iconAnchor },
+                        Clickable = true,
+                        Title = Guid.NewGuid().ToString(),
+                        Visible = true
+                    })
+                );
+            }
+            else
+            {
+                var cordDic = coordinates.ToDictionary(s => Guid.NewGuid().ToString(), y => new MarkerOptions()
                 {
-                    Text = $"Test {markers.Count()}",
-                    FontWeight = "bold",
-                    Color = "#5B32FF",
-                    FontSize = "24",
-                    ClassName = "map-marker-label"
-                },
-            });
+                    Position = new LatLngLiteral(y.Lng, y.Lat),
+                    Map = map1.InteropObject,
+                    //Icon = new Icon() { Url = s.MarkerIconPath, ScaledSize = iconSize, Anchor = iconAnchor },
+                    Clickable = true,
+                    Title = Guid.NewGuid().ToString(),
+                    Visible = true
+                });
 
-            markers.Push(marker);
+                await _markerList.AddMultipleAsync(cordDic);
+            }
 
-            return;
+
+            foreach (var latLngLiteral in coordinates)
+            {
+                await bounds.Extend(latLngLiteral);
+            }
+
+
+            await FitBounds();
         }
-        private async Task AddMarker()
+
+        private async Task RemoveMarkers()
         {
-            var mapCenter = await map1.InteropObject.GetCenter();
-            ZIndex++;
-
-            var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+            foreach (var markerListMarker in _markerList.Markers)
             {
-                Position = mapCenter,
-                Map = map1.InteropObject,
-                //Label = $"Test {markers.Count}",
-                ZIndex = ZIndex,
-                //CollisionBehavior = CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,//2021-07 supported only in beta google maps version
-                //Animation = Animation.Bounce
-                //Icon = new Icon()
-                //{
-                //    Url = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
-                //}
-                //Icon = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
-            });
+                await markerListMarker.Value.SetMap(null);
+            }
 
-            markers.Push(marker);
-
-            //return;
-            await bounds.Extend(mapCenter);
-
-            var icon = await marker.GetIcon();
-
-            Console.WriteLine($"Get icon result type is : {icon.Value?.GetType()}");
-
-            icon.Switch(
-                s => Console.WriteLine(s),
-                i => Console.WriteLine(i.Url),
-                _ => { });
-
-            markers.Push(marker);
-
-            await marker.AddListener<MouseEvent>("click", async e =>
-            {
-                var markerLabel = await marker.GetLabel();
-                _events.Add("click on " + markerLabel);
-                StateHasChanged();
-
-                await e.Stop();
-            });
+            await _markerList.RemoveAllAsync();
         }
-
         private async Task RemoveMarker()
         {
             if (!markers.Any())
@@ -209,40 +231,12 @@ namespace ServerSideDemo.Pages
             {
                 return;
             }
+
             var lastMarker = markers.Peek();
             var center = await map1.InteropObject.GetCenter();
             await lastMarker.SetPosition(center);
-            bounds = await LatLngBounds.CreateAsync(map1.JsRuntime);
-            foreach (var m in markers)
-            {
-                var pos = await m.GetPosition();
-                await bounds.Extend(pos);
-            }
         }
 
-
-        private async Task SetAnimation()
-        {
-            if (!markers.Any())
-            {
-                return;
-            }
-            var lastMarker = markers.Peek();
-            await lastMarker.SetAnimation(Animation.Bounce);
-            var position = await lastMarker.GetPosition();
-            _events.Add($"SetAnimation {position.Lat},{position.Lng} Animation.Bounce");
-        }
-        private async Task GetAnimation()
-        {
-            if (!markers.Any())
-            {
-                return;
-            }
-            var lastMarker = markers.Peek();
-            var animation = await lastMarker.GetAnimation();
-            var position = await lastMarker.GetPosition();
-            _events.Add($"GetAnimation {position.Lat},{position.Lng} {animation?.ToString()}");
-        }
         private async Task FitBounds()
         {
             if (await this.bounds.IsEmpty())

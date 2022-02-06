@@ -38,7 +38,7 @@ namespace ServerSideDemo.Pages
 
             polygonOptions = new PolygonOptions()
             {
-                StrokeWeight = 0,
+                StrokeWeight = 1,
                 FillOpacity = 0.45f,
                 Draggable = true,
                 Editable = true,
@@ -52,6 +52,8 @@ namespace ServerSideDemo.Pages
         {
             List<OverlayType> overlayTypes = new List<OverlayType>();
             overlayTypes.Add(OverlayType.Polygon);
+            overlayTypes.Add(OverlayType.Polyline);
+            overlayTypes.Add(OverlayType.Marker);
 
             var drawingControlOptions = new DrawingControlOptions()
             {
@@ -63,21 +65,42 @@ namespace ServerSideDemo.Pages
             {
                 Map = map1.InteropObject,
                 PolygonOptions = polygonOptions,
-                DrawingMode = OverlayType.Polygon,
+                //DrawingMode = OverlayType.Polygon,
                 DrawingControl = true,
-                //DrawingControlOptions = drawingControlOptions
+                DrawingControlOptions = drawingControlOptions
             };
 
             drawingManager = await DrawingManager.CreateAsync(JsRuntime, managerOptions);
 
             //https://developers.google.com/maps/documentation/javascript/drawinglayer
-            await drawingManager.AddListener<OverlayCompleteEvent>("overlaycomplete", (arg) =>
+            await drawingManager.AddOverlayCompleteListener(async (overComplete) =>
             {
-                //Overlay object is JObject with all properties,
-                //so need to serialize, extract required info depending on your needs
-                var json = arg.Overlay.ToString();
+                if (overComplete.Type == OverlayType.Polygon)
+                {
+                    var poly = overComplete.Polygon;
+                    var polyPath = await poly.GetPath();
+                    await poly.SetOptions(new PolygonOptions()
+                    {
+                        FillColor = "blue",
+                        Editable = false,
+                        Draggable = false
+                    });
+                }
+
             });
 
+
+        }
+
+        private async Task ChangeDrawingModeToLine()
+        {
+            await drawingManager.SetDrawingMode(OverlayType.Polyline);
+
+        }
+
+        private async Task StopDrawingMode()
+        {
+            await drawingManager.SetDrawingMode(null);
 
         }
     }

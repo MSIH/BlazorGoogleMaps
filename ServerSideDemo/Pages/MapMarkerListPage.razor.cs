@@ -150,8 +150,18 @@ namespace ServerSideDemo.Pages
                 new LatLngLiteral(175.790222, -36.828611),
                 new LatLngLiteral(145.116667, -37.75),
             };
+
+
+            for (int index = 0; index < 200; index++)
+            {
+                var dif = (index * 0.001);
+                coordinates.Add(new LatLngLiteral(145.116667 + dif, -37.75 + dif));
+            }
+
             await AddMarkersGroup(coordinates);
         }
+
+
 
         private async Task AddMarkersGroup(IEnumerable<LatLngLiteral> coordinates)
         {

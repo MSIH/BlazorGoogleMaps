@@ -84,10 +84,51 @@ function tryParseJson(item) {
     try {
         item2 = JSON.parse(item, dateObjectReviver);
     } catch (e) {
-        //Hm. Not sure why this one was here. 
-        //Everything looks like working without it
-        //return item.replace(/['"]+/g, '');
-        return item;
+        try {
+            // added to be able to include js functions in a json object (for ImageMapType).  JSON.parse(...) doesn't do that
+            // example json string:
+            // "{
+            //    'getTileUrl': (coord, zoom) => {
+            //                return '" + baseUrl + @"' + zoom + '/' + coord.x + '/' + coord.y;
+            //            },
+            //    'tileSize': new google.maps.Size(256, 256),
+            //    'maxZoom': 23,
+            //    'minZoom': 0,
+            //    'opacity': 0.5,
+            //    'name': 'myLayer'
+            // }"
+            item2 = eval("(" + item + ")");
+        } catch (e2) {
+            //Hm. Not sure why this one was here. 
+            //Everything looks like working without it
+            //return item.replace(/['"]+/g, '');
+            return item;
+        }
+    }
+
+    if (typeof item2 === "string" && item2 !== null) {
+        if (item2.startsWith("google.maps.drawing.OverlayType")) {
+            switch (item2) {
+                case "google.maps.drawing.OverlayType.CIRCLE":
+                    item2 = google.maps.drawing.OverlayType.CIRCLE;
+                    break;
+                case "google.maps.drawing.OverlayType.MARKER":
+                    item2 = google.maps.drawing.OverlayType.MARKER;
+                    break;
+                case "google.maps.drawing.OverlayType.POLYGON":
+                    item2 = google.maps.drawing.OverlayType.POLYGON;
+                    break;
+                case "google.maps.drawing.OverlayType.POLYLINE":
+                    item2 = google.maps.drawing.OverlayType.POLYLINE;
+                    break;
+                case "google.maps.drawing.OverlayType.RECTANGLE":
+                    item2 = google.maps.drawing.OverlayType.RECTANGLE;
+                    break;
+                default:
+            }
+
+            return item2;
+        }
     }
 
     if (typeof item2 === "object" && item2 !== null) {
@@ -106,6 +147,52 @@ function tryParseJson(item) {
                             item2[propertyName] = google.maps.Animation.BOUNCE;
                             break;
                         default:
+                    }
+                }
+
+                if (propertyValue !== null && typeof propertyValue === "string" && propertyValue.indexOf("google.maps.CollisionBehavior") == 0) {
+                    switch (propertyValue) {
+                        case "google.maps.CollisionBehavior.REQUIRED":
+                            item2[propertyName] = google.maps.CollisionBehavior.REQUIRED;
+                            break;
+                        case "google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL":
+                            item2[propertyName] = google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL;
+                            break;
+                        case "google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY":
+                            item2[propertyName] = google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY;
+                            break;
+                        default:
+                    }
+                }
+
+                if (propertyValue !== null && typeof propertyValue === "object" && propertyValue.position !== undefined) {
+                    propertyValue.position = getGooglePositionFromString(propertyValue.position);
+                }
+
+                if (propertyValue !== null
+                    && typeof propertyValue === "object"
+                    && "drawingModes" in propertyValue
+                    && propertyValue.drawingModes !== undefined) {
+                    for (var drawingMode in propertyValue.drawingModes) {
+                        let drawingModeValue = propertyValue.drawingModes[drawingMode];
+                        switch (drawingModeValue) {
+                            case "google.maps.drawing.OverlayType.CIRCLE":
+                                propertyValue.drawingModes[drawingMode] = google.maps.drawing.OverlayType.CIRCLE;
+                                break;
+                            case "google.maps.drawing.OverlayType.MARKER":
+                                propertyValue.drawingModes[drawingMode] = google.maps.drawing.OverlayType.MARKER;
+                                break;
+                            case "google.maps.drawing.OverlayType.POLYGON":
+                                propertyValue.drawingModes[drawingMode] = google.maps.drawing.OverlayType.POLYGON;
+                                break;
+                            case "google.maps.drawing.OverlayType.POLYLINE":
+                                propertyValue.drawingModes[drawingMode] = google.maps.drawing.OverlayType.POLYLINE;
+                                break;
+                            case "google.maps.drawing.OverlayType.RECTANGLE":
+                                propertyValue.drawingModes[drawingMode] = google.maps.drawing.OverlayType.RECTANGLE;
+                                break;
+                            default:
+                        }
                     }
                 }
 
@@ -261,6 +348,29 @@ window.googleMapsObjectManager = {
 
         map.controls[position].push(elem);
     },
+    addImageLayer(args) {
+        let map = _blazorGoogleMapsObjects[args[0]];
+        let elem = _blazorGoogleMapsObjects[args[1]];
+
+        map.overlayMapTypes.push(elem);
+    },
+    removeImageLayer(args) {
+        let map = _blazorGoogleMapsObjects[args[0]];
+        let elem = _blazorGoogleMapsObjects[args[1]];
+
+        var arr = map.overlayMapTypes.getArray();
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].name === elem.name) {
+                map.overlayMapTypes.removeAt(i);
+                return;
+            }
+        }
+    },
+    removeAllImageLayers(args) {
+        let map = _blazorGoogleMapsObjects[args[0]];
+
+        var arr = map.overlayMapTypes.clear();
+    },
     disposeMapElements(mapGuid) {
         var keysToRemove = [];
 
@@ -336,7 +446,15 @@ window.googleMapsObjectManager = {
         else if (functionToInvoke == "setData") {
             var pointArray = new google.maps.MVCArray();
             for (i = 0; i < args2[0].length; i++) {
-                pointArray.push(new google.maps.LatLng(args2[0][i].lat, args2[0][i].lng))
+                var cord = args2[0][i];
+
+                if (cord.hasOwnProperty("weight")) {
+                    var cordLocation = new google.maps.LatLng(cord.location.lat, cord.location.lng);
+                    var location = { location: cordLocation, weight: cord.weight };
+                    pointArray.push(location);
+                } else {
+                    pointArray.push(new google.maps.LatLng(cord.lat, cord.lng));
+                }
             }
 
             try {
@@ -356,6 +474,27 @@ window.googleMapsObjectManager = {
 
             let jsonRest = JSON.stringify(cleanDirectionResult(result, dirRequestOptions));
             return jsonRest;
+        }
+        else if (functionToInvoke == "getProjection") {
+
+            try {
+                var projection = obj[functionToInvoke](...args2);
+                _blazorGoogleMapsObjects[args[2]] = projection;
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        else if (functionToInvoke == "fromLatLngToPoint") {
+
+            try {
+                //It expects lat() and lng() functions
+                var lit = new google.maps.LatLng(args2[0].lat, args2[0].lng);
+                var point = obj[functionToInvoke](lit);
+                return point;
+            } catch (e) {
+                console.log(e);
+            }
+
         } else {
             var result = null;
             try {
@@ -426,6 +565,19 @@ window.googleMapsObjectManager = {
         //window._blazorGoogleMapsObjects[uuid] = result;
 
         return uuid;
+    },
+
+    drawingManagerOverlaycomplete: function (args) {
+        var uuid = args[0];
+        var act = args[1];
+
+        let drawingManager = window._blazorGoogleMapsObjects[uuid];
+        google.maps.event.addListener(drawingManager, "overlaycomplete", function (event) {
+            let overlayUuid = uuidv4();
+            window._blazorGoogleMapsObjects[overlayUuid] = event.overlay;
+            let returnObj = JSON.stringify([{ type: event.type, uuid: overlayUuid.toString() }]);
+            act.invokeMethodAsync("Invoke", returnObj, uuid);
+        });
     },
 
     invokeMultipleWithReturnedObjectRef: function (args) {
@@ -502,3 +654,5 @@ window.googleMapsObjectManager = {
         window._blazorGoogleMapsObjects[guid] = markerCluster;
     }
 };
+
+//export { googleMapsObjectManager }
