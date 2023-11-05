@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace GoogleMapsComponents.Maps.Places;
 
-namespace GoogleMapsComponents.Maps.Places
+public class FindPlaceFromPhoneNumberRequest : FindPlaceFromBase
 {
-    public class FindPlaceFromPhoneNumberRequest
-    {
-    }
+    /// <summary>
+    /// The phone number of the place to look up. Format must be E.164.
+    /// See: https://en.wikipedia.org/wiki/E.164
+    /// </summary>
+    public string PhoneNumber { get; set; } = default!;
 }

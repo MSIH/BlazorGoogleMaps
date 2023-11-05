@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace GoogleMapsComponents
+namespace GoogleMapsComponents;
+
+public interface IJsObjectRef
 {
-    public interface IJsObjectRef
-    {
-        Guid Guid { get; }
-    }
+    Guid Guid { get; }
 }

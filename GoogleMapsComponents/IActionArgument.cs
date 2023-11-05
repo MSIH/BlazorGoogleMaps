@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace GoogleMapsComponents;
 
-namespace GoogleMapsComponents
+internal interface IActionArgument
 {
-    internal interface IActionArgument
-    {
-        JsObjectRef JsObjectRef { get; set; }
-    }
+    JsObjectRef JsObjectRef { get; set; }
 }

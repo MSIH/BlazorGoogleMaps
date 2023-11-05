@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace GoogleMapsComponents.Maps;
 
-namespace GoogleMapsComponents.Maps
+public class StreetViewLocation
 {
-    public class StreetViewLocation
-    {
-    }
 }

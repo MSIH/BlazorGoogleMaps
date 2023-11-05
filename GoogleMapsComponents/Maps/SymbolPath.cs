@@ -1,41 +1,39 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
-namespace GoogleMapsComponents.Maps
+namespace GoogleMapsComponents.Maps;
+
+/// <summary>
+/// Built-in symbol paths.
+/// </summary>
+public enum SymbolPath
 {
     /// <summary>
-    /// Built-in symbol paths.
+    /// A backward-pointing closed arrow.
     /// </summary>
-    public enum SymbolPath
-    {
-        /// <summary>
-        /// A backward-pointing closed arrow.
-        /// </summary>
-        BACKWARD_CLOSED_ARROW = 3,
+    [EnumMember(Value = "3")]
+    BACKWARD_CLOSED_ARROW = 3,
 
-        /// <summary>
-        /// A backward-pointing open arrow.
-        /// </summary>
-        BACKWARD_OPEN_ARROW = 4,
+    /// <summary>
+    /// A backward-pointing open arrow.
+    /// </summary>
+    [EnumMember(Value = "4")]
+    BACKWARD_OPEN_ARROW = 4,
 
-        /// <summary>
-        /// A circle.
-        /// </summary>
-        CIRCLE = 0,
+    /// <summary>
+    /// A circle.
+    /// </summary>
+    [EnumMember(Value = "0")]
+    CIRCLE = 0,
 
-        /// <summary>
-        /// A forward-pointing closed arrow.
-        /// </summary>
-        FORWARD_CLOSED_ARROW = 1,
+    /// <summary>
+    /// A forward-pointing closed arrow.
+    /// </summary>
+    [EnumMember(Value = "1")]
+    FORWARD_CLOSED_ARROW = 1,
 
-        /// <summary>
-        /// A forward-pointing open arrow.
-        /// </summary>
-        FORWARD_OPEN_ARROW = 2
-    }
+    /// <summary>
+    /// A forward-pointing open arrow.
+    /// </summary>
+    [EnumMember(Value = "2")]
+    FORWARD_OPEN_ARROW = 2
 }

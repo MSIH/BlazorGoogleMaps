@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace GoogleMapsComponents.Maps;
 
-namespace GoogleMapsComponents.Maps
+/// <summary>
+/// A representation of duration as a numeric value and a display string.
+/// </summary>
+public class Duration
 {
     /// <summary>
-    /// A representation of duration as a numeric value and a display string.
+    /// A string representation of the duration value.
     /// </summary>
-    public class Duration
-    {
-        /// <summary>
-        /// A string representation of the duration value.
-        /// </summary>
-        public string Text { get; set; }
+    public string Text { get; set; }
 
-        /// <summary>
-        /// The duration in seconds.
-        /// </summary>
-        public float Value { get; set; }
-    }
+    /// <summary>
+    /// The duration in seconds.
+    /// </summary>
+    public float Value { get; set; }
 }
